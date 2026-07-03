@@ -144,6 +144,15 @@ Output: `out/target/product/RE6402L1/recovery.img`
 fastboot flash recovery recovery.img
 ```
 
+> **Note:** `fastboot boot recovery.img` (temporary boot) is **not supported** on this
+> device. The recovery image is ramdisk-only (kernel is in `vendor_boot`); most
+> SM8850 bootloaders will reject booting it directly. Always flash to the recovery
+> partition.
+
+```bash
+fastboot flash recovery recovery.img
+```
+
 Or boot temporarily:
 ```bash
 fastboot boot recovery.img
