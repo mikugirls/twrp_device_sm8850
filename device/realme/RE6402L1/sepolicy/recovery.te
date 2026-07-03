@@ -1,0 +1,20 @@
+permissive recovery;
+
+# Neo8 ODM AIDL HAL types. The standard types hal_vibrator_default_exec,
+# hal_nfc_default_exec and hal_secure_element_default_exec are already defined
+# in system/sepolicy/vendor/ and cannot be redeclared here. These three ODM-
+# specific exec types are not defined elsewhere and MUST be declared here so
+# that the /odm/bin/hw file_contexts entries resolve cleanly at build time.
+type vendor_hal_keymint_strongbox_exec, exec_type, vendor_file_type, file_type;
+type hal_cryptoeng_oplus_exec, exec_type, vendor_file_type, file_type;
+type hal_touch_default_exec, exec_type, vendor_file_type, file_type;
+
+
+recovery_only(`
+  allow recovery self:capability sys_module;
+  allow recovery sysfs:file rw_file_perms;
+  allow recovery vendor_file:file r_file_perms;
+  allow recovery rootfs:dir { add_name create getattr open read remove_name search setattr write };
+  allow recovery gpu_device:dir r_dir_perms;
+  allow recovery gpu_device:chr_file rw_file_perms;
+')

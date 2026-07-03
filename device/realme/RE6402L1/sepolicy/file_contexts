@@ -1,0 +1,16 @@
+/system/bin/hw/android\.hardware\.boot-service\.qti\.recovery u:object_r:hal_bootctl_default_exec:s0
+/system/bin/hw/android\.hardware\.health-service\.qti_recovery u:object_r:hal_health_default_exec:s0
+/system/bin/hw/android\.hardware\.fastboot-service\.example_recovery u:object_r:hal_fastboot_default_exec:s0
+/dev/dri(/.*)? u:object_r:graphics_device:s0
+
+# Neo8 ODM AIDL HAL executables — the stock /odm partition ships these
+# under /odm/bin/hw/ but the recovery file_contexts lacks entries for
+# them. Without these entries, AVC denials block the keymint-strongbox
+# and cryptoeng services from executing even though the partition is
+# mounted.
+/odm/bin/hw/android\.hardware\.security\.keymint-service-strongbox-tms u:object_r:vendor_hal_keymint_strongbox_exec:s0
+/odm/bin/hw/vendor\.oplus\.hardware\.cryptoeng@1\.0-service u:object_r:hal_cryptoeng_oplus_exec:s0
+/odm/bin/hw/vendor\.oplus\.hardware\.vibrator-service u:object_r:hal_vibrator_default_exec:s0
+/odm/bin/hw/android\.hardware\.nfc-service-tms u:object_r:hal_nfc_default_exec:s0
+/odm/bin/hw/vendor-oplus-hardware-touch-V2-service u:object_r:hal_touch_default_exec:s0
+/odm/bin/hw/android\.hardware\.secure_element-service-tms u:object_r:hal_secure_element_default_exec:s0

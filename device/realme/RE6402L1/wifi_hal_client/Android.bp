@@ -1,0 +1,17 @@
+cc_binary {
+    name: "neo8_wifi_hal_client",
+    srcs: ["neo8_wifi_hal_client.cpp"],
+    vendor: true,
+    compile_multilib: "64",
+    shared_libs: [
+        "android.hardware.wifi-V3-ndk",
+        "libbinder_ndk",
+        "libbase",
+        "liblog",
+    ],
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+    ],
+}

@@ -1,0 +1,9 @@
+#ifdef OPLUS_FEATURE_SECURITY_COMMON
+#Liuhuihui@@BSP.Security.Basic, 2025/04/03, mv weaver hal from vendor to odm partition
+service vendor.weaver_tms /odm/bin/hw/android.hardware.weaver-service-tms
+    class hal
+    user root
+    group system drmrpc
+    capabilities SYS_ADMIN SYS_NICE WAKE_ALARM
+    seclabel u:r:recovery:s0
+#endif /* OPLUS_FEATURE_SECURITY_COMMON */

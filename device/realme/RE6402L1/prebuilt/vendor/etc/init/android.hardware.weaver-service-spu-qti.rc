@@ -1,0 +1,11 @@
+on init && property:ro.boot.product.vendor.sku=sun
+    enable vendor.spu_weaver
+
+on init && property:ro.vendor.board.family=f-canoe && property:ro.vendor.qti.soc_name=canoe
+    enable vendor.spu_weaver
+
+service vendor.spu_weaver /vendor/bin/hw/android.hardware.weaver-service-spu-qti
+    disabled
+    class hal
+    user system
+    group system drmrpc
