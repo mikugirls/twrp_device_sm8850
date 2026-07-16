@@ -1,20 +1,14 @@
 # SM8850 TWRP Device Trees & Source Changes
-
 TWRP device trees and source changes for Qualcomm SM8850 (canoe) platform devices.
-
 **Android 16 / API 36 / BP2A / Virtual A/B**
-
 ## Devices
-
 | Vendor | Device | Codename | Status |
 |--------|--------|----------|--------|
 | Xiaomi | Redmi K90 | annibale | Supported |
 | Xiaomi | Redmi K90 Pro Max | myron | Supported |
 | Xiaomi | Xiaomi 17 Ultra | nezha | Supported |
 | realme | realme Neo8 | RE6402L1 | Supported |
-
 ## Repository Layout
-
 ```
 TWRP-SM8850/
 ├── README.md                          # This file
@@ -45,50 +39,36 @@ TWRP-SM8850/
     ├── apply-patches.sh               # Apply source changes to TWRP tree
     └── build.sh                       # Unified build entry script
 ```
-
 ## Quick Start
-
 ### Clone this repository alongside your TWRP source tree
-
 ```bash
 cd ~/android/twrp
 git clone https://github.com/MissMyTime/TWRP-SM8850.git
 ```
-
 ### Apply source changes
-
 ```bash
 cd ~/android/twrp
 TWRP-SM8850/scripts/apply-patches.sh .
 ```
-
 ### Build for a specific device
-
 ```bash
 cd ~/android/twrp
 source build/envsetup.sh
 lunch twrp_RE6402L1-eng
 mka recoveryimage
 ```
-
 Or use the convenience script:
-
 ```bash
 cd ~/android/twrp
 TWRP-SM8850/scripts/build.sh RE6402L1 realme
 ```
-
 ## Build Requirements
-
 - WSL2 + Ubuntu 24.04 (recommended)
 - 64GB+ RAM or swap recommended
 - 200GB+ free disk space
 - See [docs/BUILD.md](docs/BUILD.md) for full environment setup.
-
 ## Source Changes Summary
-
 See [docs/PATCHES.md](docs/PATCHES.md) for detailed descriptions.
-
 ### bootable/recovery
 - **Slot detection fix** (`twinstall.cpp`): Corrects Virtual A/B slot detection logic.
 - **Auto-reflash TWRP** (`action.cpp`): Backs up recovery before flashing ROM, restores to both slots after.
@@ -99,28 +79,28 @@ See [docs/PATCHES.md](docs/PATCHES.md) for detailed descriptions.
 - **Wi-Fi support** (myron/Neo8): Recovery Wi-Fi framework, supplicant, DHCP client.
 - **ST54 null pointer crash fix** (`partition.cpp`, `gui.cpp`): Fixes nullptr crash when initializing ST54 secure element on neZha (Xiaomi 17 Ultra) devices.
 - **SELog guard fix**: Suppresses spurious SELinux denials for ST54 DAC access during recovery boot, prevents early boot hangs.
-
 ### system/vold
 - **FBE / Weaver compatibility**: Android 16 FBE decryption and Weaver/Keymaster compatibility.
 - **ST54 key storage safety patch** (`KeyStorage.cpp`, `Decrypt.cpp`): Adds null checks and safety guards for ST54 weaver key access, fixes decryption failures on neZha devices.
 - **Thales weaver recovery support**: Adds userspace helper for Thales strongbox keymint/weaver service used on Xiaomi SM8850 neZha.
-
 ## Device-specific Notes
-
 Each device has its own documentation in `docs/` covering:
 - Partition table and sizes
 - FBE / Keymaster / Weaver status
 - Known issues and workarounds
 - Prebuilt binary notes (keymint, weaver, touch, etc.)
-
 ## Contributing
-
 When adding a new device:
 1. Create `device/<vendor>/<codename>/` with the full device tree.
 2. Add `docs/<vendor>-<codename>.md` with device parameters.
 3. If new source changes are required, place them in `source_changes/`.
 4. Update this `README.md` device table.
 
-## License
+## Thanks
+- TeamWin Recovery Project team for the base TWRP open source code
+- AOSP project for the Android system open source base
+- Qualcomm for open source QCOM kernel and device tree resources
+- All custom recovery community devs for shared public fixes and testing support
 
+## License
 See individual device trees and source files for their respective licenses.
