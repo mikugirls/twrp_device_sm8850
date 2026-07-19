@@ -105,20 +105,67 @@ BOARD_KERNEL_CMDLINE :=
 #   dedicated recovery_a / recovery_b raw partitions exist
 # -----------------------------------------------------------------------------
 AB_OTA_UPDATER := true
+# Matches the official OS3.0.306.4.WPMCNXM full-OTA payload manifest exactly
+# (58 partitions, verified against payload.bin of the official package).
 AB_OTA_PARTITIONS += \
+    abl \
+    aop \
+    aop_config \
+    bluetooth \
     boot \
-    init_boot \
-    vendor_boot \
+    countrycode \
+    cpucp \
+    cpucp_dtb \
+    dcp \
+    devcfg \
+    dsp \
     dtbo \
+    featenabler \
+    hyp \
+    hyp_ac_config \
+    idmanager \
+    imagefv \
+    init_boot \
+    keymaster \
+    mi_ext \
+    modem \
+    modemfirmware \
+    multiimgqti \
+    odm \
+    pdp \
+    pdp_cdb \
+    product \
+    pvmfw \
+    qtvm_dtbo \
+    qupfw \
+    recovery \
+    secretkeeper \
+    shrm \
+    soccp \
+    soccp_dcd \
+    soccp_debug \
+    spuservice \
+    system \
+    system_dlkm \
+    system_ext \
+    tme_config \
+    tme_fw \
+    tme_seq_patch \
+    tz \
+    tz_ac_config \
+    tz_qti_config \
+    uefi \
+    uefisecapp \
     vbmeta \
     vbmeta_system \
-    system \
-    system_ext \
-    system_dlkm \
-    product \
     vendor \
+    vendor_boot \
     vendor_dlkm \
-    odm
+    vm-bootsys \
+    xbl \
+    xbl_ac_config \
+    xbl_config \
+    xbl_ramdump
 
 BOARD_RECOVERY_NEEDS_BOOTLOADER_CONTROL := true
 
