@@ -39,11 +39,11 @@ assert_no_match \
     "$REPO_ROOT/patches/neo8/files" "$REPO_ROOT/patches/neo8/patches"
 
 assert_no_match_outside_stock_matrix \
-    'annibale|neo8|nezha|RE6402L1|RMX8899|Goodix|OPlus|realme|ColorOS|vendor\.weaver_tms' \
+    'annibale|neo8|nezha|RE6402L1|RMX8899|nezha-goodix|secure_element-service-goodix|weaver-service-goodix|libese_weaver_goodix|vendor\.goodix\.hardware\.secure_element|OPlus|realme|ColorOS|vendor\.weaver_tms' \
     "$REPO_ROOT/device/xiaomi/myron"
 
 assert_no_match_outside_stock_matrix \
-    'myron|neo8|nezha|RE6402L1|RMX8899|Goodix|OPlus|realme|ColorOS|vendor\.weaver_tms' \
+    'myron|neo8|nezha|RE6402L1|RMX8899|nezha-goodix|secure_element-service-goodix|weaver-service-goodix|libese_weaver_goodix|vendor\.goodix\.hardware\.secure_element|OPlus|realme|ColorOS|vendor\.weaver_tms' \
     "$REPO_ROOT/device/xiaomi/annibale"
 
 for file in \
