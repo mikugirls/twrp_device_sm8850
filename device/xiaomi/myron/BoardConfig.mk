@@ -179,6 +179,9 @@ BOARD_RECOVERY_NEEDS_BOOTLOADER_CONTROL := true
 #   ro.boot.veritymode=enforcing
 # -----------------------------------------------------------------------------
 BOARD_AVB_ENABLE := true
+# ABL enforces recovery's rollback index even with an unlocked bootloader.
+# The stock OS3.0.306.4 recovery image uses index 1.
+BOARD_AVB_RECOVERY_ADD_HASH_FOOTER_ARGS += --rollback_index 1
 
 # -----------------------------------------------------------------------------
 # 6. Physical partition sizes
@@ -278,10 +281,10 @@ TW_CRYPTO_USE_VENDOR_KEYMINT := true
 # -----------------------------------------------------------------------------
 # 10. Recovery-side security patch compatibility
 # -----------------------------------------------------------------------------
-# The myron release config supplies the same version tuple as the verified
-# recovery image without assigning Android 16's readonly PLATFORM_* variables.
-VENDOR_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
-BOOT_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
+# Match the installed OS and vendor security levels. QTI KeyMint consumes these
+# values when the recovery service starts, so they must never be spoofed forward.
+VENDOR_SECURITY_PATCH := 2026-02-01
+BOOT_SECURITY_PATCH := 2026-05-01
 
 # -----------------------------------------------------------------------------
 # 11. Recovery base

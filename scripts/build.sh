@@ -86,44 +86,38 @@ fi
 "$SCRIPT_DIR/apply-patches.sh" "$TWRP_SOURCE" "$CODENAME"
 
 if [ "$CODENAME" = "myron" ]; then
-    for file in Decrypt.cpp KeyStorage.cpp; do
-        expected="$REPO_ROOT/patches/myron/files/system/vold/$file"
-        applied="$TWRP_SOURCE/system/vold/$file"
-        if ! cmp -s "$expected" "$applied"; then
-            echo "Error: Myron system/vold source is not the pinned device version: $file"
-            exit 1
-        fi
-    done
-
-    if ! cmp -s \
-            "$REPO_ROOT/patches/common/files/bootable/recovery/partitionmanager.cpp" \
-            "$TWRP_SOURCE/bootable/recovery/partitionmanager.cpp"; then
-        echo "Error: Myron recovery source contains a device-specific partition manager override."
+    if find "$REPO_ROOT/patches/myron/files/system/vold" -type f -print -quit 2>/dev/null | grep -q .; then
+        echo "Error: Myron must not replace complete system/vold source files."
         exit 1
     fi
 
-    if grep -q 'setRecoveryKeyMintEnvironment\|/tmp/keymaster_key_blob' \
+    if grep -q 'setRecoveryKeyMintEnvironment\|usePersistentKeystoreDatabase\|MS_BIND' \
             "$TWRP_SOURCE/system/vold/Decrypt.cpp" \
             "$TWRP_SOURCE/system/vold/KeyStorage.cpp"; then
-        echo "Error: unsafe Myron key handling was found after patch application."
+        echo "Error: Myron contains an unapproved KeyMint or persistent-keystore override."
         exit 1
     fi
 
-    grep -q 'usePersistentKeystoreDatabase' \
+    grep -q 'std::string keystore_path = "/tmp/misc/keystore/"' \
         "$TWRP_SOURCE/system/vold/Decrypt.cpp" || {
-        echo "Error: Myron persistent keystore binding is missing."
+        echo "Error: Myron recovery keystore database baseline is missing."
         exit 1
     }
-    grep -q 'void copySqliteDb() {}' \
-        "$TWRP_SOURCE/system/vold/Decrypt.cpp" || {
-        echo "Error: Myron startup keystore hook must remain non-writing."
-        exit 1
-    }
-    grep -q 'rename(upgraded_blob_file.c_str(), blob_file.c_str())' \
+
+    grep -q 'Refusing KeyMint key upgrade in recovery' \
         "$TWRP_SOURCE/system/vold/KeyStorage.cpp" || {
-        echo "Error: Myron upgraded key commit is missing."
+        echo "Error: Myron key-upgrade write-back guard is missing."
         exit 1
     }
+
+    if grep -Eq '^[[:space:]]*if[[:space:]]*\(rename\(upgraded_blob_file\.c_str\(\), blob_file\.c_str\(\)\)' \
+            "$TWRP_SOURCE/system/vold/KeyStorage.cpp" || \
+       grep -Eq '^[[:space:]]*if[[:space:]]*\(!writeStringToFile\(\*opHandle\.getUpgradedBlob\(\)' \
+            "$TWRP_SOURCE/system/vold/KeyStorage.cpp"; then
+        echo "Error: Myron recovery must not persist a KeyMint-upgraded blob."
+        exit 1
+    fi
+
     grep -q 'setprop sys.usb.config twrp_mtp_adb' \
         "$TWRP_SOURCE/bootable/recovery/partitionmanager.cpp" || {
         echo "Error: Myron MTP/ADB composite configuration is missing."
@@ -137,7 +131,13 @@ source build/envsetup.sh
 lunch "$LUNCH_TARGET"
 m recoveryimage
 
-RECOVERY_ROOT="$TWRP_SOURCE/out/target/product/$CODENAME/recovery/root"
+BUILD_OUT="${OUT_DIR:-$TWRP_SOURCE/out}"
+case "$BUILD_OUT" in
+    /*) ;;
+    *) BUILD_OUT="$TWRP_SOURCE/$BUILD_OUT" ;;
+esac
+PRODUCT_OUT="$BUILD_OUT/target/product/$CODENAME"
+RECOVERY_ROOT="$PRODUCT_OUT/recovery/root"
 RECOVERY_INIT="$RECOVERY_ROOT/system/etc/init/hw/init.rc"
 if [ ! -s "$RECOVERY_INIT" ]; then
     echo "Error: recovery image is missing /system/etc/init/hw/init.rc."
@@ -148,8 +148,37 @@ if ! cmp -s "$TWRP_SOURCE/bootable/recovery/etc/init.rc" "$RECOVERY_INIT"; then
     exit 1
 fi
 
+if [ "$CODENAME" = "myron" ]; then
+    RECOVERY_PROP="$RECOVERY_ROOT/prop.default"
+    RECOVERY_IMAGE="$PRODUCT_OUT/recovery.img"
+    check_prop() {
+        local name="$1"
+        local value="$2"
+        grep -qx "$name=$value" "$RECOVERY_PROP" || {
+            echo "Error: recovery property mismatch: expected $name=$value"
+            exit 1
+        }
+    }
+
+    check_prop ro.build.version.release 16
+    check_prop ro.build.version.security_patch 2026-05-01
+    check_prop ro.vendor.build.security_patch 2026-02-01
+
+    AVBTOOL="$BUILD_OUT/host/linux-x86/bin/avbtool"
+    [ -x "$AVBTOOL" ] || AVBTOOL="$(command -v avbtool || true)"
+    if [ -z "$AVBTOOL" ]; then
+        echo "Error: avbtool is unavailable; recovery rollback index was not verified."
+        exit 1
+    fi
+    "$AVBTOOL" info_image --image "$RECOVERY_IMAGE" | \
+        grep -Eq 'Rollback Index:[[:space:]]+1$' || {
+        echo "Error: recovery AVB rollback index is not 1."
+        exit 1
+    }
+fi
+
 echo ""
 echo "========================================"
 echo "Build complete."
-echo "Output: out/target/product/$CODENAME/recovery.img"
+echo "Output: $PRODUCT_OUT/recovery.img"
 echo "========================================"

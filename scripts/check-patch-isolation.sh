@@ -74,49 +74,38 @@ for set_name in neo8 nezha; do
         fail "$set_name KeyMint implementation is missing"
 done
 
-for set_name in annibale; do
+for set_name in annibale myron; do
     [ ! -e "$REPO_ROOT/patches/$set_name/files/system/vold/Decrypt.cpp" ] || \
         fail "$set_name must use stock Decrypt.cpp"
     [ ! -e "$REPO_ROOT/patches/$set_name/files/system/vold/KeyStorage.cpp" ] || \
         fail "$set_name must use stock KeyStorage.cpp"
-    if [ -d "$REPO_ROOT/patches/$set_name/patches/system_vold" ] && \
+    if [ "$set_name" = "annibale" ] && \
+            [ -d "$REPO_ROOT/patches/$set_name/patches/system_vold" ] && \
             find "$REPO_ROOT/patches/$set_name/patches/system_vold" -type f -print -quit | grep -q .; then
         fail "$set_name must not carry private system/vold patches"
     fi
 done
 
-for file in Decrypt.cpp KeyStorage.cpp; do
-    [ -f "$REPO_ROOT/patches/myron/files/system/vold/$file" ] || \
-        fail "missing Myron system/vold baseline: $file"
-done
-
 assert_no_match \
-    'setRecoveryKeyMintEnvironment|twrp\.keymint|stock_environment|/tmp/keymaster_key_blob' \
-    "$REPO_ROOT/patches/myron/files/system/vold"
+    'setRecoveryKeyMintEnvironment|usePersistentKeystoreDatabase|MS_BIND|99\.87\.36|2099-12-31' \
+    "$REPO_ROOT/patches/myron" "$REPO_ROOT/device/xiaomi/myron"
 
-grep -q 'usePersistentKeystoreDatabase' \
-    "$REPO_ROOT/patches/myron/files/system/vold/Decrypt.cpp" || \
-    fail "Myron persistent keystore binding is missing"
-grep -q 'void copySqliteDb() {}' \
-    "$REPO_ROOT/patches/myron/files/system/vold/Decrypt.cpp" || \
-    fail "Myron startup keystore hook must remain non-writing"
-grep -q 'mount(source, target, nullptr, MS_BIND, nullptr)' \
-    "$REPO_ROOT/patches/myron/files/system/vold/Decrypt.cpp" || \
-    fail "Myron persistent keystore bind mount is missing"
-grep -q 'rename(upgraded_blob_file.c_str(), blob_file.c_str())' \
-    "$REPO_ROOT/patches/myron/files/system/vold/KeyStorage.cpp" || \
-    fail "Myron upgraded key commit is missing"
+grep -q 'Refusing KeyMint key upgrade in recovery' \
+    "$REPO_ROOT/patches/myron/patches/system_vold/no_key_upgrade_writeback.patch" || \
+    fail "Myron key-upgrade write-back guard is missing"
 
-grep -q 'setprop sys.usb.config twrp_mtp_adb' \
-    "$REPO_ROOT/patches/common/files/bootable/recovery/partitionmanager.cpp" || \
-    fail "common MTP/ADB composite configuration is missing"
-if grep -q 'setprop ctl.start adbd' \
-        "$REPO_ROOT/patches/common/files/bootable/recovery/partitionmanager.cpp"; then
-    fail "Neo8 MTP startup behavior must not be stored in the common set"
-fi
 grep -q 'setprop ctl.start adbd' \
-    "$REPO_ROOT/patches/neo8/patches/bootable_recovery/mtp_composite.patch" || \
-    fail "Neo8 MTP composite override is missing"
+    "$REPO_ROOT/patches/common/files/bootable/recovery/partitionmanager.cpp" || \
+    fail "common MTP/ADB startup is missing"
+if grep -q 'setprop sys.usb.config twrp_mtp_adb' \
+        "$REPO_ROOT/patches/common/files/bootable/recovery/partitionmanager.cpp"; then
+    fail "Myron MTP configuration must not be stored in the common set"
+fi
+grep -q 'setprop sys.usb.config twrp_mtp_adb' \
+    "$REPO_ROOT/patches/myron/patches/bootable_recovery/mtp_composite.patch" || \
+    fail "Myron MTP composite override is missing"
+[ ! -e "$REPO_ROOT/patches/neo8/patches/bootable_recovery/mtp_composite.patch" ] || \
+    fail "Neo8 must use the standard common MTP path"
 
 for file in \
     prebuilt/odm/bin/hw/android.hardware.weaver-service.thales \
@@ -150,9 +139,18 @@ if grep -nE 'LOCAL_MODULE[[:space:]]*:=[[:space:]]*recovery-(persist|refresh)' \
     fail "recovery-persist/recovery-refresh must remain owned by Android 16 Soong"
 fi
 
-grep -q '^+99\.87\.36$' \
-    "$REPO_ROOT/patches/myron/patches/cts/platform_release.patch" || \
-    fail "Myron CTS platform release compatibility is missing"
+grep -q 'string_value: "16"' \
+    "$REPO_ROOT/device/xiaomi/myron/release/flag_values/myron/RELEASE_PLATFORM_VERSION_LAST_STABLE.textproto" || \
+    fail "Myron recovery OS version must be Android 16"
+grep -q 'string_value: "2026-05-01"' \
+    "$REPO_ROOT/device/xiaomi/myron/release/flag_values/myron/RELEASE_PLATFORM_SECURITY_PATCH.textproto" || \
+    fail "Myron recovery OS patch level is incorrect"
+grep -q '^VENDOR_SECURITY_PATCH := 2026-02-01$' \
+    "$REPO_ROOT/device/xiaomi/myron/BoardConfig.mk" || \
+    fail "Myron vendor patch level is incorrect"
+grep -q '^BOARD_AVB_RECOVERY_ADD_HASH_FOOTER_ARGS += --rollback_index 1$' \
+    "$REPO_ROOT/device/xiaomi/myron/BoardConfig.mk" || \
+    fail "Myron recovery rollback index is not pinned to 1"
 
 grep -q 'name: "init_recovery.rc"' \
     "$REPO_ROOT/patches/common/files/bootable/recovery/etc/Android.bp" || \

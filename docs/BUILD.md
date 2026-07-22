@@ -80,7 +80,7 @@ The codename may be `myron`, `annibale`, `nezha`, `RE6402L1` or `neo8`. The scri
 1. Copy the maintained full source files to establish the exact expected tree.
 2. Apply Git-format incremental patches when the target source repository matches.
 
-Myron uses a pinned non-switching vold pair that keeps keystore2 on the persistent database during decryption and commits upgraded blobs to their original directory. Annibale keeps stock vold. Nezha and Neo8 each carry a separate device-specific vold implementation.
+Myron keeps the verified TWRP vold baseline. Its small KeyStorage patch rejects a decryption attempt if KeyMint requests an OS-version key upgrade and never writes the returned blob. Annibale keeps stock vold. Nezha and Neo8 each carry a separate device-specific vold implementation.
 
 ## Build manually
 
